@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>밥돌이 조작부 사용 설명서</title>
+<style>
+:root { --bg:#f1f0ee; --surface:#fff; --fg:#181615; --muted:#5d5855; --line:#d8d4cf; --accent:#c8102e; --chip:#e9e6e2; }
+@media (prefers-color-scheme: dark) { :root { --bg:#121110; --surface:#1c1a19; --fg:#eceae7; --muted:#a6a09b; --line:#353230; --accent:#ff5c6c; --chip:#2a2726; color-scheme: dark } }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: 'Apple SD Gothic Neo','Malgun Gothic',sans-serif; font-size: 16px; line-height: 1.65; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 20px; }
+h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+h2 { margin: 0 0 10px; font-size: 18px; }
+p { margin: 0; }
+.lead { color: var(--muted); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; }
+ol, ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
+.tw { overflow-x: auto; }
+kbd { display: inline-block; padding: 0 8px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--chip); font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.note { color: var(--muted); font-size: 14px; margin-top: 10px; }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>밥돌이 조작부 사용 설명서</h1>
+    <p class="lead">기본 사용법과 메뉴(시간·화력) 설정 변경 방법입니다. <a href="index.html">시뮬레이터로 돌아가기</a></p>
+  </header>
+
+  <section class="box">
+    <h2>1. 키 이름</h2>
+    <div class="tw"><table>
+      <tr><th>키</th><th>하는 일</th></tr>
+      <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>메뉴 선택. 선택한 메뉴의 표시등이 켜집니다.</td></tr>
+      <tr><td><kbd>▲</kbd> <kbd>▼</kbd></td><td>설정 변경 중에 값을 올리고 내립니다.</td></tr>
+      <tr><td><kbd>START/STOP</kbd></td><td>취반 시작, 일시정지, 다시 시작.</td></tr>
+      <tr><td><kbd>전원</kbd></td><td>전원을 켜고 끕니다.</td></tr>
+    </table></div>
+    <p class="note">숫자 표시창 아래의 1단계~4단계 표시등은 메뉴의 단계입니다. 취반 중에는 지금 진행하는 단계가 켜집니다.</p>
+  </section>
+
+  <section class="box">
+    <h2>2. 기본 사용법</h2>
+    <ol>
+      <li><kbd>전원</kbd>을 짧게 누릅니다. 표시창에 선택된 메뉴의 총 시간이 나옵니다.</li>
+      <li>메뉴 <kbd>1</kbd>~<kbd>4</kbd> 중 쓸 메뉴를 누릅니다. 표시등이 켜진 메뉴가 선택된 메뉴입니다.</li>
+      <li>솥을 올리고 <kbd>START/STOP</kbd>을 짧게 누르면 취반이 시작됩니다. 1단계부터 차례로 진행합니다.</li>
+      <li>취반이 끝나면 알림음이 3번 울립니다. 그대로 두면 1분, 2분 뒤에 한 번씩 더 알려 줍니다.</li>
+      <li>끝난 뒤 <kbd>START/STOP</kbd>을 누르면 대기 상태로 돌아가고, 한 번 더 누르면 같은 메뉴로 다시 시작합니다.</li>
+    </ol>
+  </section>
+
+  <section class="box">
+    <h2>3. 취반 중에 할 수 있는 일</h2>
+    <div class="tw"><table>
+      <tr><th>하고 싶은 일</th><th>방법</th></tr>
+      <tr><td>잠시 멈추기</td><td>취반 중 <kbd>START/STOP</kbd>을 짧게 누릅니다. 멈춰 있는 동안 30초마다 알림음이 울립니다.</td></tr>
+      <tr><td>다시 시작</td><td>멈춘 상태에서 <kbd>START/STOP</kbd>을 짧게 누릅니다.</td></tr>
+      <tr><td>취반 취소</td><td>멈춘 상태에서 <kbd>START/STOP</kbd>을 2초 누릅니다. 멈춘 채 10분이 지나면 자동으로 취소됩니다.</td></tr>
+      <tr><td>다른 메뉴로 바꾸기</td><td>멈춘 상태나 완료 상태에서 다른 메뉴 키를 누르면 그 메뉴가 선택되고 대기 상태가 됩니다.</td></tr>
+      <tr><td>전원 끄기</td><td>취반 중이거나 멈춘 상태에서는 <kbd>전원</kbd>을 2초 누릅니다. 대기나 완료 상태에서는 짧게 누르면 됩니다.</td></tr>
+    </table></div>
+    <p class="note">솥을 빼면 취반 중에 <b>E0</b>이 표시됩니다. 1분 안에 솥을 다시 올리면 이어서 취반하고, 1분이 지나면 취소됩니다. 대기나 완료 상태로 10분 동안 아무것도 누르지 않으면 전원이 꺼집니다.</p>
+  </section>
+
+  <section class="box">
+    <h2>4. 설정 변경 (메뉴의 시간과 화력 바꾸기)</h2>
+    <p>각 메뉴(1~4)는 4단계까지 시간과 화력을 정할 수 있습니다. 대기 상태에서 바꿉니다.</p>
+    <ol style="margin-top:10px">
+      <li>바꿀 메뉴 키를 <b>2초</b> 누릅니다. 설정 변경 모드가 되고 1단계의 시간부터 보여 줍니다.</li>
+      <li><kbd>▲</kbd> <kbd>▼</kbd>로 값을 바꿉니다.
+        <ul>
+          <li>시간: 한 번 누를 때마다 10초씩 바뀝니다. 길게 누르면 1분씩 바뀝니다. 최대 20:00입니다.</li>
+          <li>화력: 한 번에 1씩 바뀝니다. 1~10이고, 2단계부터는 0도 쓸 수 있습니다.</li>
+        </ul>
+      </li>
+      <li>같은 메뉴 키를 짧게 누르면 다음 항목으로 넘어갑니다. 순서는 1단계 시간 → 1단계 화력 → 2단계 시간 → … → 4단계 화력이고, 마지막 뒤에는 처음으로 돌아갑니다.</li>
+      <li><kbd>START/STOP</kbd>을 누르면 저장하고 대기 상태로 돌아갑니다.</li>
+    </ol>
+    <p class="note">저장하지 않고 나가려면 <kbd>전원</kbd>을 누릅니다. 30초 동안 아무것도 누르지 않아도 저장하지 않고 나갑니다. 설정 변경 중에는 다른 메뉴 키가 반응하지 않습니다.</p>
+  </section>
+
+  <section class="box">
+    <h2>5. 단계를 정하는 규칙</h2>
+    <ul>
+      <li>1단계는 시간이 10초 이상, 화력이 1 이상이어야 합니다.</li>
+      <li>시간을 0으로 하면 그 단계에서 레시피가 끝납니다. 그 뒤 단계는 "----"로 표시되고 값을 바꿀 수 없으며, 저장하면 0으로 저장됩니다.</li>
+      <li>화력을 0으로 하고 시간을 넣으면 불을 끄고 기다리는 단계(뜸 들이기)가 됩니다. 그 뒤 단계에서 다시 가열하는 레시피도 만들 수 있습니다.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>6. 출고 레시피로 되돌리기</h2>
+    <ol>
+      <li>전원을 끈 상태에서 <kbd>START/STOP</kbd>을 5초 누릅니다. 표시창에 <b>rSt</b>가 깜박입니다.</li>
+      <li>5초 안에 <kbd>START/STOP</kbd>을 한 번 더 누르면 복원됩니다. 다른 키를 누르거나 5초가 지나면 취소됩니다.</li>
+    </ol>
+    <p class="note">출고 값은 모든 메뉴가 1단계 7:00 / 화력 7, 2단계 3:00 / 화력 7, 3·4단계 0입니다.</p>
+  </section>
+</div>
+</body>
+</html>
