@@ -164,7 +164,8 @@ dt{font-weight:700}
       <div class="step" id="posStep"><div class="lab">④ 선반 위치 <em>최하단·최상단 권장</em></div><div class="pos" id="sPos" role="group" aria-label="선반 위치"></div></div>
       <div class="step" id="gapStep"><div class="lab">⑤ 선반 실공간 높이</div>
         <div id="gapRows"></div>
-        <div class="hint">기본 350mm (프레임 20 포함 한 단 370). 필요하면 50~720mm로 입력하세요(제품 전체 높이 최대 2,480). 기본값에서 바꾸면 제품 1대당 10만원이 추가되고 납기가 근무일 10일 늘어납니다.</div>
+        <div class="hint">기본 350mm (프레임 20 포함 한 단 370). 필요하면 50~720mm로 입력하세요(제품 전체 높이 최대 2,480). 최하단을 150mm 이하로 하면 선반 없이 높임만 하며 선반 가격이 빠집니다. 기본값에서 바꾸면(높임 포함) 제품 1대당 10만원이 추가되고 납기가 근무일 10일 늘어납니다.</div>
+        <div class="hint" id="raiseNote" aria-live="polite" hidden></div>
         <div class="hint" id="gapMsg" aria-live="polite"></div>
         <div class="cost" id="gapCost" hidden>높이 맞춤 +10만원(1대당) · 납기 근무일 10일 추가</div>
         <button type="button" class="small" id="gapReset" hidden>기본 350mm로 되돌리기</button>
@@ -223,23 +224,29 @@ dt{font-weight:700}
 'use strict';
 /* ───── 구성 규칙 ───── */
 var COLS=[2,3,4,5], COOK=[2,3,4], DEPTH=350, KEY='dirh-saved-v1';
-var FRAME=20, STD=350, GMIN=50, GMAX=720, HMAX=2480, COST='높이 맞춤 +10만원(1대당) · 납기 근무일 10일 추가';
+var FRAME=20, STD=350, NOSHELF=150, GMIN=50, GMAX=720, HMAX=2480, COST='높이 맞춤 +10만원(1대당) · 납기 근무일 10일 추가';
 /* ───── 가격 (단위 만원, 부가세 별도) · 기준: 가격표 시트 2026-11-26 ───── */
-var PRICE={body:{4:220,6:310,8:390,9:430,10:470,12:550,15:660,16:690,20:820},s23:70,s45:110,custom:10,install:15,addInstall:5,base:0.05,vat:0.1};
+/* 열 수별: base = 밥솥 2단, cooker = 밥솥 1단 추가, shelf = 선반 1단 */
+var PRICE={base:{2:220,3:310,4:390,5:470},cooker:{2:90,3:130,4:160,5:190},shelf:{2:40,3:60,4:80,5:100},custom:10,install:15,addInstall:5,disc:0.05,vat:0.1};
 function width(c){return 660+275*(c-2)}
 function height(k,s){return 260+370*(k+s)}
 function unitH(u){return u.gap.reduce(function(h,g){return h+FRAME+g},260+370*u.cook)}
 function isCustom(u){return u.gap.some(function(g){return g!==STD})}
 function anyCustom(l){return l.some(isCustom)}
 function clampGap(v){v=Math.round(+v);return v?Math.max(GMIN,Math.min(GMAX,v)):STD}
-function code(u){return 'DIRH-'+(u.cook+u.shelf)+u.cook+u.col+'RP'}
+function isRaise(u,j){return u.pos[j]===0&&u.gap[j]<=NOSHELF}
+function raiseAt(u){for(var j=0;j<u.pos.length;j++)if(isRaise(u,j))return j;return -1}
+function shelfCount(u){return u.shelf-(raiseAt(u)<0?0:1)}
+function raiseText(u){var j=raiseAt(u);return j<0?'':'하단 높임 '+u.gap[j]+'mm (선반 없음)'}
+function code(u){return 'DIRH-'+(u.cook+shelfCount(u))+u.cook+u.col+'RP'}
 function short(u){return code(u).slice(5)}
 function amps(n){return (n*1000/220).toFixed(1)}
 function fmt(v){return v.toLocaleString('ko-KR')}
-function listPrice(u){return (PRICE.body[u.cook*u.col]+u.shelf*(u.col<=3?PRICE.s23:PRICE.s45))*10000}
+function bodyPrice(c,k){return PRICE.base[c]+(k-2)*PRICE.cooker[c]}
+function listPrice(u){return (bodyPrice(u.col,u.cook)+shelfCount(u)*PRICE.shelf[u.col])*10000}
 function priceOf(list){
   var product=0;list.forEach(function(u){product+=listPrice(u)});
-  var base=Math.round(product*PRICE.base),nc=list.filter(isCustom).length,custom=nc*PRICE.custom*10000,add=list.length-1,install=add*PRICE.addInstall*10000;
+  var base=Math.round(product*PRICE.disc),nc=list.filter(isCustom).length,custom=nc*PRICE.custom*10000,add=list.length-1,install=add*PRICE.addInstall*10000;
   var supply=product-base+custom+install,vat=Math.round(supply*PRICE.vat);
   return {product:product,base:base,nc:nc,custom:custom,add:add,install:install,supply:supply,vat:vat,total:supply+vat};
 }
@@ -275,7 +282,7 @@ var S={units:[{col:3,cook:3,shelf:1,pos:[0],gap:[350]}],act:0,all:true,view:'3d'
 function U(){return S.units[S.act]}
 function multi(){return S.units.length>1}
 function shown(){return multi()&&!S.all?[U()]:S.units}
-function slotsBottomUp(u){var a=[];for(var i=0;i<u.cook+u.shelf;i++){var j=u.pos.indexOf(i);a.push(j>=0?{k:'S',h:FRAME+u.gap[j],gap:u.gap[j]}:{k:'C',h:370})}return a}
+function slotsBottomUp(u){var a=[];for(var i=0;i<u.cook+u.shelf;i++){var j=u.pos.indexOf(i);a.push(j>=0?{k:isRaise(u,j)?'R':'S',h:FRAME+u.gap[j],gap:u.gap[j]}:{k:'C',h:370})}return a}
 function total(list){
   var n=0,w=0,h=0;list.forEach(function(u){n+=u.cook*u.col;w+=width(u.col);h=Math.max(h,unitH(u))});
   return {n:n,w:w,h:h};
@@ -284,15 +291,15 @@ function modelText(list){
   var names=[],cnt={};list.forEach(function(u){var c=code(u);if(!cnt[c]){names.push(c);cnt[c]=0}cnt[c]++});
   return names.map(function(c){return c+(list.length>1?' × '+cnt[c]+'대':'')}).join(' + ');
 }
-function stackText(u){return '밥솥 '+u.cook+'단'+(u.shelf?' + 선반 '+u.shelf+'단':'')+' × '+u.col+'열'}
+function stackText(u){var n=shelfCount(u),r=raiseText(u);return '밥솥 '+u.cook+'단'+(n?' + 선반 '+n+'단':'')+' × '+u.col+'열'+(r?' · '+r:'')}
 function posText(u){
-  if(!u.shelf)return '선반 없음';
+  if(!shelfCount(u))return '선반 없음';
   var rec=posList(u.cook,u.shelf).filter(function(o){return o.p.join()===u.pos.join()})[0].rec;
-  return u.pos.map(function(i){return posName(i,u.cook+u.shelf)}).join(', ')+(rec?' (권장)':' (설치 가능)');
+  return u.pos.filter(function(i,j){return !isRaise(u,j)}).map(function(i){return posName(i,u.cook+u.shelf)}).join(', ')+(rec?' (권장)':' (설치 가능)');
 }
 function gapText(u){
-  if(!u.shelf)return '-';
-  return u.pos.map(function(i,j){return (u.shelf>1?posName(i,u.cook+u.shelf)+' ':'')+u.gap[j]+'mm'+(u.gap[j]===STD?' (기본)':' (맞춤)')}).join(', ');
+  var n=shelfCount(u);if(!n)return '-';
+  return u.pos.map(function(i,j){return isRaise(u,j)?'':(n>1?posName(i,u.cook+u.shelf)+' ':'')+u.gap[j]+'mm'+(u.gap[j]===STD?' (기본)':' (맞춤)')}).filter(Boolean).join(', ');
 }
 var $=function(id){return document.getElementById(id)};
 var hintText='';
@@ -355,7 +362,7 @@ function renderGaps(){
     gapKey=key;$('gapRows').innerHTML='';
     u.pos.forEach(function(p,j){
       var l=document.createElement('label');l.className='gaprow';l.htmlFor='gap'+j;
-      l.innerHTML='<span>'+posName(p,u.cook+u.shelf)+' 선반</span><input id="gap'+j+'" type="number" inputmode="numeric" min="'+GMIN+'" max="'+GMAX+'" step="10"><em>mm</em>';
+      l.innerHTML='<span>'+posName(p,u.cook+u.shelf)+' <b class="gk">선반</b></span><input id="gap'+j+'" type="number" inputmode="numeric" min="'+GMIN+'" max="'+GMAX+'" step="10"><em>mm</em>';
       $('gapRows').appendChild(l);
       var inp=l.querySelector('input');
       inp.addEventListener('input',function(){var v=+inp.value;if(v>=GMIN&&v<=GMAX){U().gap[j]=Math.round(v);gapMsg='';update()}});
@@ -367,6 +374,9 @@ function renderGaps(){
     });
   }
   u.gap.forEach(function(g,j){var i=$('gap'+j);if(i&&document.activeElement!==i)i.value=g});
+  u.pos.forEach(function(p,j){var i=$('gap'+j);if(i)i.parentNode.querySelector('.gk').textContent=isRaise(u,j)?'높임':'선반'});
+  var r=raiseAt(u),rn=$('raiseNote');rn.hidden=r<0;
+  rn.textContent=r<0?'':'최하단 '+u.gap[r]+'mm: 선반 없이 높임만 적용합니다. 선반 가격 제외, 높이 맞춤 +10만원은 적용됩니다.';
   $('gapMsg').textContent=gapMsg;
   $('gapCost').hidden=!isCustom(u);$('gapReset').hidden=!isCustom(u);
 }
@@ -387,7 +397,7 @@ function combos(N,wl,hl){
     if(n<N||(wl&&w>wl)||n-Math.min(x.n,b?y.n:x.n)>=N)continue;
     var parts=[{m:x,q:a}];if(b)parts.push({m:y,q:b});
     parts.sort(function(p,q){return q.m.n-p.m.n});
-    var cost=0;parts.forEach(function(p){cost+=p.q*PRICE.body[p.m.n]});cost=cost*(1-PRICE.base)+(k-1)*PRICE.addInstall;
+    var cost=0;parts.forEach(function(p){cost+=p.q*bodyPrice(p.m.c,p.m.k)});cost=cost*(1-PRICE.disc)+(k-1)*PRICE.addInstall;
     out.push({cost:cost,parts:parts,k:k,n:n,ex:n-N,mix:b?1:0,w:w,h:Math.max(x.h,b?y.h:x.h)});
   }
   return out;
@@ -492,6 +502,8 @@ function renderFront(){
           for(var d=0;d<4;d++)o.push('<circle cx="'+(x+100+d*25)+'" cy="'+(yb-38)+'" r="9" fill="#E8EAEC"/>');
           if(S.pot)pot(x+137.5,yb-124);
         }
+      }else if(k.k==='R'){
+        if(k.gap>=100)text(x0+W/2,yb-FRAME-k.gap/2+16,'높임 '+k.gap,false,44/f);
       }else{
         R(x0+55,yb-20,W-110,20,'#B3121F','#7E0C15');
         if(k.gap>=110)text(x0+W/2,yb-FRAME-k.gap/2+18,'선반 '+k.gap+(k.gap===STD?'':' (맞춤)'),false,52/f);
@@ -582,7 +594,7 @@ function init3D(){
           if(S.pot)pot(g,x,y+127,0);
         }
         y+=370;
-      }else{
+      }else if(k.k==='R'){y+=k.h}else{
         box(g,W-110,20,DEPTH-20,0,y,0,M.shelf);
         box(g,W-110,22,8,0,y-1,zf-8,M.red,true);
         y+=k.h;
@@ -673,7 +685,7 @@ function update(){
   $('oSize').textContent=fmt(all.w)+'×'+DEPTH+'×'+fmt(all.h);
   var h=row('모델명',modelText(S.units));
   if(m){S.units.forEach(function(x,i){var n=x.cook*x.col;h+=row((i+1)+'번',code(x)+' · '+n+'구 · '+amps(n)+'A<br>W '+fmt(width(x.col))+' × H '+fmt(unitH(x))+' · '+stackText(x)+(x.shelf?'<br>선반 '+posText(x)+' · 실공간 '+gapText(x):''))})}
-  else h+=row('단 구성','전체 '+(u.cook+u.shelf)+'단 ('+stackText(U())+')')+row('선반 위치',posText(U()))+row('선반 실공간',gapText(U()));
+  else h+=row('단 구성','전체 '+(u.cook+shelfCount(u))+'단 ('+stackText(U())+')')+row('선반 위치',posText(U()))+row('선반 실공간',gapText(U()));
   $('oList').innerHTML=h;$('oMulti').hidden=!m;
   var cu=S.units.map(function(x,i){return isCustom(x)?i+1:0}).filter(Boolean);
   $('oCost').hidden=!cu.length;$('oCost').textContent=COST+(m&&cu.length?' ('+cu.join(', ')+'번)':'');
@@ -709,7 +721,7 @@ function renderCompare(){
     line('단 구성',function(l){return each(l,stackText)})+
     line('선반 위치',function(l){return each(l,posText)})+
     line('선반 실공간',function(l){return each(l,gapText)})+
-    line('선반 높이 맞춤',function(l){return anyCustom(l)?'<span class="tag">+'+man(priceOf(l).custom)+' · 납기 +10일(근무일)</span>':'기본'})+
+    line('높이 맞춤',function(l){return anyCustom(l)?'<span class="tag">+'+man(priceOf(l).custom)+' · 납기 +10일(근무일)</span>':'기본'})+
     line('제품가',function(l){return won(priceOf(l).product)})+
     line('예상 금액<br>(부가세 별도)',function(l){return '<b class="tag">'+won(priceOf(l).supply)+'</b>'})+
     line('부가세 포함',function(l){return won(priceOf(l).total)})+
